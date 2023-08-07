@@ -438,7 +438,7 @@ export default {
             .catch((err) => {
               console.log(err)
               // this.$message.error('发生错误：' + err)
-              this.$message.error('选中用户中多个存在资源，不能删除')
+              this.$message.error('选中用户中存在某个用户被分配公司，不能删除')
               this.fetchData(1)
             })
         })
