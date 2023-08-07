@@ -1,32 +1,76 @@
+<!-- 头部菜单 -->
 <template>
   <div class="navbar">
-    <hamburger :is-active="sidebar.opened" class="hamburger-container" @toggleClick="toggleSideBar" />
-
+    <!-- 侧边栏隐藏时图标 -->
+    <hamburger
+      :is-active="sidebar.opened"
+      class="hamburger-container"
+      @toggleClick="toggleSideBar"
+    />
+    <!-- 面包屑 -->
     <breadcrumb class="breadcrumb-container" />
-
     <div class="right-menu">
-      <el-dropdown class="avatar-container" trigger="click">
+      <!-- 右侧隐藏菜单 -->
+      <el-dropdown class="avatar-container" trigger="click" size="medium">
         <div class="avatar-wrapper">
-          <img :src="avatar+'?imageView2/1/w/80/h/80'" class="user-avatar">
-          <i class="el-icon-caret-bottom" />
+          <hamburger class="hamburger-container" />
+          <el-tooltip effect="dark" content="全屏" placement="bottom">
+            <svg-icon
+              icon-class="全屏"
+              class="quanping_icon"
+              style="font-size: 15px"
+              @click="toggleFullScreen"
+            />
+          </el-tooltip>
         </div>
         <el-dropdown-menu slot="dropdown" class="user-dropdown">
-          <router-link to="/">
-            <el-dropdown-item>
-              Home
-            </el-dropdown-item>
-          </router-link>
-          <a target="_blank" href="https://github.com/PanJiaChen/vue-admin-template/">
-            <el-dropdown-item>Github</el-dropdown-item>
-          </a>
-          <a target="_blank" href="https://panjiachen.github.io/vue-element-admin-site/#/">
-            <el-dropdown-item>Docs</el-dropdown-item>
-          </a>
-          <el-dropdown-item divided @click.native="logout">
-            <span style="display:block;">Log Out</span>
+          <el-dropdown-item icon="el-icon-user-solid">
+            个人中心
+          </el-dropdown-item>
+          <el-dropdown-item icon="el-icon-edit-outline">
+            修改密码
+          </el-dropdown-item>
+
+          <el-dropdown-item
+            divided
+            icon="el-icon-switch-button"
+            @click.native="logout"
+          >
+            退出登录
+          </el-dropdown-item>
+          <el-dropdown-item divided> 系统切换: </el-dropdown-item>
+          <el-dropdown-item>
+            <template>
+              <el-radio-group
+                v-model="systemRadio"
+                size="medium"
+                style="display: flex; flex-direction: column"
+              >
+                <el-radio
+                  label="1"
+                  style="margin-top: 10px"
+                  @change="changeMainMenu"
+                >主导航菜单</el-radio>
+                <el-radio
+                  v-for="(item, index) in systemDTO"
+                  :key="index"
+                  :label="item.link"
+                  style="margin-top: 10px"
+                  @change="changeSystem(item.link)"
+                >{{ item.name }}</el-radio>
+              </el-radio-group>
+            </template>
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
+    </div>
+    <!-- 租户信息 -->
+    <div class="user-info">
+      <svg-icon icon-class="首页" style="font-size: 16px" class="shouye_icon" />
+      <font
+        style="font-size: 15px; margin-left: 4px"
+        class="user_name"
+      >当前租户：({{ tenantCount }}) {{ tenantName }}</font>
     </div>
   </div>
 </template>
@@ -35,25 +79,84 @@
 import { mapGetters } from 'vuex'
 import Breadcrumb from '@/components/Breadcrumb'
 import Hamburger from '@/components/Hamburger'
-
+import { commonQuery } from '@/api/right/subSystem'
+import { commonQueryTenant, querytenantById } from '@/api/org/tenant'
 export default {
   components: {
     Breadcrumb,
     Hamburger
   },
+  data() {
+    return {
+      userName: this.$store.getters.name,
+      tenantId: this.$store.getters.tenantId,
+      systemRadio: '1',
+      systemDTO: [],
+      tenantCount: 0,
+      tenantName: ''
+    }
+  },
   computed: {
-    ...mapGetters([
-      'sidebar',
-      'avatar'
-    ])
+    ...mapGetters(['sidebar', 'avatar'])
+  },
+  mounted() {
+    this.getSubSystem()
+    this.queryTenant()
+    this.queryTenantById()
   },
   methods: {
+    // 控制展开
     toggleSideBar() {
       this.$store.dispatch('app/toggleSideBar')
     },
     async logout() {
       await this.$store.dispatch('user/logout')
-      this.$router.push(`/login?redirect=${this.$route.fullPath}`)
+      this.$router.push(`/login`)
+    },
+    // 查询租户
+    queryTenant() {
+      const tenantQuery = {}
+      tenantQuery.pageSize = 1000
+      commonQueryTenant(this.tenantQuery)
+        .then((response) => {
+          // const { total, pageNum, pageSize } = response
+          const { total } = response
+          this.tenantCount = parseInt(total)
+        })
+        .catch(() => {
+          this.$message.error('网络异常')
+        })
+    },
+    queryTenantById() {
+      querytenantById(this.tenantId).then((res) => {
+        this.tenantName = res.name
+      })
+    },
+    // 全屏放大
+    toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen()
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen()
+        }
+      }
+    },
+    // 获取子系统
+    getSubSystem() {
+      commonQuery().then((res) => {
+        this.systemDTO = res.data
+        // console.log(this.systemDTO)
+      })
+    },
+    // 主导航菜单
+    changeMainMenu() {
+      this.$router.push('/')
+    },
+    // 切换子系统
+    changeSystem(value) {
+      window.location.href = value
+      // console.log(value)
     }
   }
 }
@@ -65,25 +168,36 @@ export default {
   overflow: hidden;
   position: relative;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 
   .hamburger-container {
     line-height: 46px;
     height: 100%;
     float: left;
     cursor: pointer;
-    transition: background .3s;
-    -webkit-tap-highlight-color:transparent;
+    transition: background 0.3s;
+    -webkit-tap-highlight-color: transparent;
 
     &:hover {
-      background: rgba(0, 0, 0, .025)
+      background: rgba(0, 0, 0, 0.025);
     }
   }
 
   .breadcrumb-container {
     float: left;
   }
-
+  .user-info {
+    height: 100%;
+    line-height: 55px;
+    float: right;
+    cursor: pointer;
+    .shouye_icon,
+    .user_name {
+      &:hover {
+        color: #409eff;
+      }
+    }
+  }
   .right-menu {
     float: right;
     height: 100%;
@@ -103,16 +217,16 @@ export default {
 
       &.hover-effect {
         cursor: pointer;
-        transition: background .3s;
+        transition: background 0.3s;
 
         &:hover {
-          background: rgba(0, 0, 0, .025)
+          background: rgba(0, 0, 0, 0.025);
         }
       }
     }
 
     .avatar-container {
-      margin-right: 30px;
+      margin-right: 10px;
 
       .avatar-wrapper {
         margin-top: 5px;

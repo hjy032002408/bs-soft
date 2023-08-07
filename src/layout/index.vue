@@ -1,23 +1,32 @@
+<!-- 根页面 -->
 <template>
   <div :class="classObj" class="app-wrapper">
     <div v-if="device==='mobile'&&sidebar.opened" class="drawer-bg" @click="handleClickOutside" />
+    <!-- 侧边栏 -->
     <sidebar class="sidebar-container" />
     <div class="main-container">
       <div :class="{'fixed-header':fixedHeader}">
+        <!-- 头部 -->
         <navbar />
       </div>
+      <div :class="{'fixed-header':fixedHeader}">
+        <!-- 标签页 -->
+        <Tab home-path="/dashboard" />
+      </div>
+      <!-- 主页面 -->
       <app-main />
     </div>
   </div>
 </template>
 
 <script>
-import { Navbar, Sidebar, AppMain } from './components'
+import { Navbar, Sidebar, AppMain, Tab } from './components'
 import ResizeMixin from './mixin/ResizeHandler'
 
 export default {
   name: 'Layout',
   components: {
+    Tab,
     Navbar,
     Sidebar,
     AppMain

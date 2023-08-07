@@ -27,7 +27,9 @@ const mutations = {
     state.device = device
   }
 }
-
+/**
+ * 控制展开
+ */
 const actions = {
   toggleSideBar({ commit }) {
     commit('TOGGLE_SIDEBAR')

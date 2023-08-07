@@ -1,3 +1,4 @@
+<!-- 面包屑 -->
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
@@ -15,7 +16,10 @@ import pathToRegexp from 'path-to-regexp'
 export default {
   data() {
     return {
-      levelList: null
+      levelList: [],
+      activeIndex: '1',
+      fullPath: '',
+      dashboardPath: ''
     }
   },
   watch: {
@@ -32,8 +36,9 @@ export default {
       let matched = this.$route.matched.filter(item => item.meta && item.meta.title)
       const first = matched[0]
 
+      // 面包屑固定部分
       if (!this.isDashboard(first)) {
-        matched = [{ path: '/dashboard', meta: { title: 'Dashboard' }}].concat(matched)
+        matched = [{ path: '/', meta: { title: 'BOSSSOFT' }}].concat(matched)
       }
 
       this.levelList = matched.filter(item => item.meta && item.meta.title && item.meta.breadcrumb !== false)
@@ -43,7 +48,7 @@ export default {
       if (!name) {
         return false
       }
-      return name.trim().toLocaleLowerCase() === 'Dashboard'.toLocaleLowerCase()
+      return name.trim().toLocaleLowerCase() === 'BOSSSOFT'.toLocaleLowerCase()
     },
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
@@ -74,5 +79,9 @@ export default {
     color: #97a8be;
     cursor: text;
   }
+}
+.app-menu{
+  display: inline-block;
+  margin-left: 8px;
 }
 </style>

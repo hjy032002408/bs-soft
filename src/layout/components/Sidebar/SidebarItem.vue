@@ -1,5 +1,8 @@
+<!-- 子组件 -->
+<!-- 显示侧边栏功能 -->
 <template>
   <div v-if="!item.hidden">
+    <!-- 用来处理 children 中只有一项的情况 -->
     <template v-if="hasOneShowingChild(item.children,item) && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow">
       <app-link v-if="onlyOneChild.meta" :to="resolvePath(onlyOneChild.path)">
         <el-menu-item :index="resolvePath(onlyOneChild.path)" :class="{'submenu-title-noDropdown':!isNest}">
@@ -7,7 +10,7 @@
         </el-menu-item>
       </app-link>
     </template>
-
+    <!-- 处理 children 有多个的情况 -->
     <el-submenu v-else ref="subMenu" :index="resolvePath(item.path)" popper-append-to-body>
       <template slot="title">
         <item v-if="item.meta" :icon="item.meta && item.meta.icon" :title="item.meta.title" />
@@ -26,6 +29,7 @@
 
 <script>
 import path from 'path'
+// 判断是否为外链
 import { isExternal } from '@/utils/validate'
 import Item from './Item'
 import AppLink from './Link'
@@ -51,8 +55,6 @@ export default {
     }
   },
   data() {
-    // To fix https://github.com/PanJiaChen/vue-admin-template/issues/237
-    // TODO: refactor with render function
     this.onlyOneChild = null
     return {}
   },
@@ -62,18 +64,15 @@ export default {
         if (item.hidden) {
           return false
         } else {
-          // Temp set(will be used if only has one showing child)
           this.onlyOneChild = item
           return true
         }
       })
-
-      // When there is only one child router, the child router is displayed by default
+      // 有子组件
       if (showingChildren.length === 1) {
         return true
       }
-
-      // Show parent if there are no child router to display
+      // 只有一个子组件
       if (showingChildren.length === 0) {
         this.onlyOneChild = { ... parent, path: '', noShowingChildren: true }
         return true
@@ -81,15 +80,20 @@ export default {
 
       return false
     },
+    // 处理菜单的路径问题
     resolvePath(routePath) {
+      // 如果这个菜单的父菜单的路径是一个外链，则将父菜单的 path 原封不懂返回
       if (isExternal(routePath)) {
         return routePath
       }
+      // 如果有查询参数，就把参数加上
       if (isExternal(this.basePath)) {
         return this.basePath
       }
+      // path.resolve() ： 将多个路径解析为一个规范化的绝对路径
       return path.resolve(this.basePath, routePath)
     }
   }
 }
 </script>
+
